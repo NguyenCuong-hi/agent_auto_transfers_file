@@ -1,0 +1,5 @@
+pyinstaller --onefile -w D:\WorkSpace\file_transfer\service\file_transfer.py
+pyuic5 -x E:\Workspaces\file_transfer\resource\FileTransfer.ui -o E:\Workspaces\file_transfer\convert\fm_file_transfer.py
+
+E:\Workspaces\file_transfer\resource\FileTransfer.ui
+E:\Workspaces\file_transfer\convert\fm_file_transfer.py
