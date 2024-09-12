@@ -79,7 +79,7 @@ def is_exist_file(file_path):
     return os.path.isfile(file_path)
 
 
-def checking_init_file_seting(file_path):
+def checking_init_file_setting(file_path):
     if is_exist_file(file_path=file_path):
         return reading_file_setting(file_setting=file_path)
     else:

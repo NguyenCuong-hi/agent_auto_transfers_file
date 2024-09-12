@@ -2,7 +2,7 @@ import socket
 import time
 
 
-def connection_socket(file_path, client_socket):
+def send_file_socket(file_path, client_socket):
     with open(file_path, 'rb') as file:
         while True:
             data = file.read(1024)

@@ -1,6 +1,10 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 import socket
-from service.socket_client import connection_socket
+import watchdog
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+import time
+from socket_client import send_file_socket
 
 import os
 
@@ -50,3 +54,42 @@ class TransferThread(QThread):
         self.running = False
         self.quit()
         self.wait()
+
+
+class FileDetection(FileSystemEventHandler):
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+    
+    def on_created(self, event):
+        if not event.is_directory:
+            new_file = event.src_path
+            transfer_thread = TransferThread(host=self.host, port=self.port, file_path=new_file)
+            transfer_thread.stop()
+            
+
+def monitor_directory(directory, host, port):
+    event_handler = FileDetection(host=host, port=port)
+    observer = Observer()
+    observer.schedule(event_handler, directory, recursive=True)
+    observer.start()
+    
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    
+    observer.join()
+
+
+def load_existing_files(directory, file_list, socket):
+    for root, _, files in os.walk(directory):
+        for file in files:
+            file_path = os.path.join(root, file)
+            if file_path not in file_list:
+                send_file_socket(file_path=file_path, client_socket=socket)
+                                            
+
+if __name__ == '__main__':
+    monitor_directory()
