@@ -169,9 +169,22 @@
       <rect>
        <x>60</x>
        <y>20</y>
-       <width>821</width>
+       <width>741</width>
        <height>31</height>
       </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_confirm">
+     <property name="geometry">
+      <rect>
+       <x>810</x>
+       <y>20</y>
+       <width>71</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Confirm</string>
      </property>
     </widget>
    </widget>

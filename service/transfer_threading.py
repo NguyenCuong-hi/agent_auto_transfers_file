@@ -68,20 +68,34 @@ class FileDetection(FileSystemEventHandler):
             transfer_thread.stop()
             
 
-def monitor_directory(directory, host, port):
-    event_handler = FileDetection(host=host, port=port)
-    observer = Observer()
-    observer.schedule(event_handler, directory, recursive=True)
-    observer.start()
-    
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-    
-    observer.join()
 
+class DirectoryMonitorThread(QThread):
+    file_added = pyqtSignal(str)
+    
+    def __init__(self, directory, host, port):
+        super().__init__()
+        self.directory = directory
+        self.host = host
+        self.port = port
+        self.observer = None
+
+    def run(self):
+        event_handler = FileDetection(host=self.host, port=self.port)
+        self.observer = Observer()
+        self.observer.schedule(event_handler, self.directory, recursive=True)
+        self.observer.start()
+
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.observer.stop()
+
+        self.observer.join()
+
+    def stop(self):
+        if self.observer:
+            self.observer.stop()
 
 def load_existing_files(directory, file_list, socket):
     for root, _, files in os.walk(directory):
@@ -90,6 +104,3 @@ def load_existing_files(directory, file_list, socket):
             if file_path not in file_list:
                 send_file_socket(file_path=file_path, client_socket=socket)
                                             
-
-if __name__ == '__main__':
-    monitor_directory()

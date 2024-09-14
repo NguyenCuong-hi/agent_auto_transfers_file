@@ -1,10 +1,10 @@
 {
     "host": "127.0.0.1",
-    "server": "facebook.com",
+    "server": "google.com",
     "port": 80,
     "username": "admin",
     "password": "admin",
-    "local_site": "",
+    "local_site": "E:/Cuong/BK",
     "remote_site": "",
     "database": {
         "host_db": "",

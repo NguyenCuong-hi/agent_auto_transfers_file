@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'E:\Workspaces\file_transfer\resource\FileTransfer.ui'
+# Form implementation generated from reading ui file 'E:\Workspaces\agent_auto_transfers_file\resource\FileTransfer.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -57,8 +57,11 @@ class Ui_MainWindow(object):
         self.label_5.setGeometry(QtCore.QRect(10, 30, 47, 13))
         self.label_5.setObjectName("label_5")
         self.txt_path_local = QtWidgets.QPlainTextEdit(self.gr_local)
-        self.txt_path_local.setGeometry(QtCore.QRect(60, 20, 821, 31))
+        self.txt_path_local.setGeometry(QtCore.QRect(60, 20, 741, 31))
         self.txt_path_local.setObjectName("txt_path_local")
+        self.btn_confirm = QtWidgets.QPushButton(self.gr_local)
+        self.btn_confirm.setGeometry(QtCore.QRect(810, 20, 71, 31))
+        self.btn_confirm.setObjectName("btn_confirm")
         self.progressBar = QtWidgets.QProgressBar(self.centralwidget)
         self.progressBar.setGeometry(QtCore.QRect(10, 800, 891, 23))
         self.progressBar.setProperty("value", 24)
@@ -172,6 +175,7 @@ class Ui_MainWindow(object):
         self.btn_connect.setText(_translate("MainWindow", "Connect"))
         self.gr_local.setTitle(_translate("MainWindow", "Local Site"))
         self.label_5.setText(_translate("MainWindow", "Local site"))
+        self.btn_confirm.setText(_translate("MainWindow", "Confirm"))
         self.label_6.setText(_translate("MainWindow", "Server:"))
         self.lbl_checking.setText(_translate("MainWindow", "OK"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
