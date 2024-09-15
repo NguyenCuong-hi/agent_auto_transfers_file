@@ -1,10 +1,10 @@
 {
     "host": "127.0.0.1",
-    "server": "google.com",
-    "port": 80,
+    "server": "127.0.0.1",
+    "port": 8000,
     "username": "admin",
     "password": "admin",
-    "local_site": "E:/Cuong/BK",
+    "local_site": "D:/data_import_exam_online",
     "remote_site": "",
     "database": {
         "host_db": "",

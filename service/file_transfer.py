@@ -7,24 +7,27 @@ from PyQt5.QtWidgets import QFileSystemModel
 
 import datetime
 from crontab import CronTab
+
 current_dir = os.path.abspath(os.path.dirname(__file__))
 PATH = os.path.abspath(os.path.join(current_dir, '..'))
-print (PATH)
+print(PATH)
 
 sys.path.append(PATH)
 from convert.fm_file_transfer import Ui_MainWindow
 from service.rw_file import checking_init_file_setting, update_file_setting, reading_file_setting
 from service.thread_checking import ConnectionChecker
-from service.transfer_threading import DirectoryMonitorThread
+from service.transfer_threading import DirectoryMonitorThread, load_existing_files
+from service.transfer_threading import TransferThread
 
 
 class FileTransfer(Ui_MainWindow):
     def __init__(self):
+        self.monitor_dir = None
         self.model = None
         self.file_path_local_site = None
-        self.host  = None
-        self.server  = None
-        self.port  = None
+        self.host = None
+        self.server = None
+        self.port = None
         self.local_site = None
 
         self.setupUi(MainWindow)
@@ -34,15 +37,13 @@ class FileTransfer(Ui_MainWindow):
         self.btn_confirm.clicked.connect(self.btn_confirm_)
 
         self.host, self.server, self.port, username, password, self.local_site, remote_site, host_db, username_db, password_db, port_db, schema = checking_init_file_setting(
-            file_path= PATH + '/setting.json')
+            file_path=PATH + '/setting.json')
 
         self.show_config(host=self.host, server=self.server, port=self.port)
         self.start_connection_checker(server=self.server, port=self.port)
 
+        self.send_file_exists(directory=self.local_site, host=self.host, port=self.port)
         self.transfer_file(dir=self.local_site)
-
-        
-        
 
     def show_tb_file(self, file_path):
         self.model = QFileSystemModel()
@@ -84,13 +85,14 @@ class FileTransfer(Ui_MainWindow):
             "server": self.txt_server.toPlainText(),
             "port": int(self.txt_port.toPlainText())
         }
-        update_file_setting(file_setting= PATH + '/setting.json', data=data)
+        update_file_setting(file_setting=PATH + '/setting.json', data=data)
         self.connection_checker.stop()
         self.host = None
         self.server = None
         self.port = None
 
-        self.host, self.server, self.port, username, password, local_site, remote_site, host_db, username_db, password_db, port_db, schema = reading_file_setting(file_setting = PATH + '/setting.json')
+        self.host, self.server, self.port, username, password, local_site, remote_site, host_db, username_db, password_db, port_db, schema = reading_file_setting(
+            file_setting=PATH + '/setting.json')
         self.start_connection_checker(server=self.server, port=self.port)
 
     def transfer_file(self, dir):
@@ -102,10 +104,17 @@ class FileTransfer(Ui_MainWindow):
         data = {
             "local_site": self.txt_path_local.toPlainText()
         }
-        update_file_setting(file_setting= PATH + '/setting.json', data=data)
-        _, _, _, _, _, self.file_path_local_site, _, _, _, _, port_db, schema = reading_file_setting(file_setting = PATH + '/setting.json')
+        update_file_setting(file_setting=PATH + '/setting.json', data=data)
+        _, _, _, _, _, self.file_path_local_site, _, _, _, _, port_db, schema = reading_file_setting(
+            file_setting=PATH + '/setting.json')
         print(f"Confirm path local: {self.file_path_local_site}")
 
+    def send_file_exists(self, directory, host, port):
+        for root, _, files in os.walk(directory):
+            for file in files:
+                file_path = os.path.join(root, file)
+                transfer_thread = TransferThread(host=host, port=port, file_path=file_path)
+                transfer_thread.start()
 
 
 if __name__ == '__main__':

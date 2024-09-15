@@ -1,12 +1,12 @@
-from PyQt5.QtCore import QThread, pyqtSignal
+import os
 import socket
-import watchdog
+import time
+
+from PyQt5.QtCore import QThread, pyqtSignal
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-import time
-from socket_client import send_file_socket
 
-import os
+from socket_client import send_file_socket
 
 
 class TransferThread(QThread):
@@ -19,23 +19,36 @@ class TransferThread(QThread):
         self.callback = callback
         self.file_path = file_path
         self.running = True
+        self.max_retries = 3
+        self.retry_interval = 5
 
     def run(self):
         if not os.path.exists(self.file_path):
             self.transfer_progress.emit(f"File {self.file_path} not exist.")
+            print(f"File {self.file_path} not exist.")
             return
 
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((self.host, self.port))
-            self.transfer_progress.emit(f"Connecting to {self.host}:{self.port} successful.")
+        retries = 0
+        while retries < self.max_retries and self.running:
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.connect((self.host, self.port))
+                self.transfer_progress.emit(f"Connection to {self.host}:{self.port} successful.")
+                print(f"Connection to {self.host}:{self.port} successful.")
 
-            self.send_file(sock, self.file_path)
+                self.send_file(sock, self.file_path)
 
-        except socket.error as e:
-            self.transfer_progress.emit(f"An error connection: {e}")
-        finally:
-            sock.close()
+            except socket.error as e:
+                retries += 1
+                self.transfer_progress.emit(f"Connection failed ({retries}/{self.max_retries}): {e}")
+                print(f"Connection failed ({retries}/{self.max_retries}): {e}")
+
+                if retries < self.max_retries:
+                    self.transfer_progress.emit(f"Retrying in {self.retry_interval} seconds...")
+                    time.sleep(self.retry_interval)
+                else:
+                    self.transfer_progress.emit("Maximum retry attempts reached. Transfer failed.")
+                    print("Maximum retry attempts reached. Transfer failed.")
 
     def send_file(self, sock, file_path):
         try:
@@ -45,10 +58,13 @@ class TransferThread(QThread):
                     if not chunk:
                         break
                     sock.sendall(chunk)
-                    self.transfer_progress.emit(f"Transferring: {file_path}...")
-            self.transfer_progress.emit(f"Transfer {file_path} successful.")
+                    self.transfer_progress.emit(f"\nTransferring: {file_path}...")
+                    print(f"Transferring: {file_path}...")
+            self.transfer_progress.emit(f"\nTransfer {file_path} successful.")
+            print(f"Transfer {file_path} successful.")
         except Exception as e:
-            self.transfer_progress.emit(f"An error current transfer file: {e}")
+            self.transfer_progress.emit(f"\nAn error current transfer file: {e}")
+            print(f"\nAn error current transfer file: {e}")
 
     def stop(self):
         self.running = False
@@ -60,18 +76,17 @@ class FileDetection(FileSystemEventHandler):
     def __init__(self, host, port):
         self.host = host
         self.port = port
-    
+
     def on_created(self, event):
         if not event.is_directory:
             new_file = event.src_path
             transfer_thread = TransferThread(host=self.host, port=self.port, file_path=new_file)
             transfer_thread.stop()
-            
 
 
 class DirectoryMonitorThread(QThread):
     file_added = pyqtSignal(str)
-    
+
     def __init__(self, directory, host, port):
         super().__init__()
         self.directory = directory
@@ -97,10 +112,9 @@ class DirectoryMonitorThread(QThread):
         if self.observer:
             self.observer.stop()
 
-def load_existing_files(directory, file_list, socket):
+
+def load_existing_files(directory, socket):
     for root, _, files in os.walk(directory):
         for file in files:
             file_path = os.path.join(root, file)
-            if file_path not in file_list:
-                send_file_socket(file_path=file_path, client_socket=socket)
-                                            
+            send_file_socket(file_path=file_path, client_socket=socket)
