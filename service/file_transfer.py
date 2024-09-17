@@ -40,7 +40,7 @@ class FileTransfer(Ui_MainWindow):
             file_path=PATH + '/setting.json')
 
         self.show_config(host=self.host, server=self.server, port=self.port)
-        self.start_connection_checker(server=self.server, port=self.port)
+        # self.start_connection_checker(server=self.server, port=self.port)
 
         self.send_file_exists(directory=self.local_site, host=self.host, port=self.port)
         self.transfer_file(dir=self.local_site)

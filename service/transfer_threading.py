@@ -19,7 +19,7 @@ class TransferThread(QThread):
         self.callback = callback
         self.file_path = file_path
         self.running = True
-        self.max_retries = 3
+        self.max_retries = 1
         self.retry_interval = 5
 
     def run(self):
@@ -49,18 +49,22 @@ class TransferThread(QThread):
                 else:
                     self.transfer_progress.emit("Maximum retry attempts reached. Transfer failed.")
                     print("Maximum retry attempts reached. Transfer failed.")
+                self.running = False
 
     def send_file(self, sock, file_path):
         try:
             file_name = os.path.basename(file_path)
             file_size = os.path.getsize(file_path)
-            sock.send(f"{file_name}|{file_size}".encode('utf-8'))
+            sock.send(file_name.encode())
+            sock.send(str(file_size).encode())
             with open(file_path, 'rb') as file:
-                while True:
+                c = 0
+                while c < file_size:
                     chunk = file.read(1024)
                     if not chunk:
                         break
-                    sock.sendall(chunk.endcode('utf-8'))
+                    sock.sendall(chunk)
+                    c += len(chunk)
                     self.transfer_progress.emit(f"\nTransferring: {file_path}...")
                     print(f"Transferring: {file_path}...")
             self.transfer_progress.emit(f"\nTransfer {file_path} successful.")
@@ -68,6 +72,7 @@ class TransferThread(QThread):
         except Exception as e:
             self.transfer_progress.emit(f"\nAn error current transfer file: {e}")
             print(f"\nAn error current transfer file: {e}")
+            sock.close()
 
     def stop(self):
         self.running = False
