@@ -57,13 +57,13 @@ class TransferThread(QThread):
             file_size = os.path.getsize(file_path)
             sock.send(file_name.encode())
             sock.send(str(file_size).encode())
-            with open(file_path, 'rb') as file:
+            with open(file_path, 'r', encoding='utf-8') as file:
                 c = 0
                 while c < file_size:
-                    chunk = file.read(1024)
+                    chunk = file.read()
                     if not chunk:
                         break
-                    sock.sendall(chunk)
+                    sock.send(chunk.encode('utf-8'))
                     c += len(chunk)
                     self.transfer_progress.emit(f"\nTransferring: {file_path}...")
                     print(f"Transferring: {file_path}...")
