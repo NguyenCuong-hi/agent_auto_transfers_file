@@ -84,7 +84,6 @@ class FileTransfer(Ui_MainWindow):
             "port": int(self.txt_port.toPlainText())
         }
         update_file_setting(file_setting=PATH + '/setting.json', data=data)
-        self.connection_checker.stop()
         self.host = None
         self.server = None
         self.port = None
