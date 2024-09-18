@@ -117,9 +117,3 @@ class DirectoryMonitorThread(QThread):
         if self.observer:
             self.observer.stop()
 
-
-def load_existing_files(directory, socket):
-    for root, _, files in os.walk(directory):
-        for file in files:
-            file_path = os.path.join(root, file)
-            send_file_socket(file_path=file_path, client_socket=socket)

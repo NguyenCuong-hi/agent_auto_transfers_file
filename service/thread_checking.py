@@ -1,56 +1,39 @@
-from PyQt5.QtCore import QThread, pyqtSignal
-import socket
+from PyQt5.QtCore import  pyqtSignal, QObject
+import subprocess
+import threading
 import time
 
+class PingChecker(QObject):
+    ping_result = pyqtSignal(str)
 
-class ConnectionChecker(QThread):
-    connection_status = pyqtSignal(bool)
-
-    def __init__(self, host, port, timeout=5, retry_interval=5):
+    def __init__(self, lbl_checking):
         super().__init__()
-        self.host = host
-        self.port = port
-        self.timeout = timeout
-        self.retry_interval = retry_interval
-        self.running = True
-
-    def run(self):
-        connection_established = False
-        sock = None
-
-        while self.running:
-            if not connection_established:
-                try:
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    sock.settimeout(self.timeout)
-                    sock.connect((self.host, self.port))
-                    connection_established = True
-                    print(f"Connected to {self.host}:{self.port}")
-                    self.connection_status.emit(True)
-
-                except socket.timeout:
-                    print(
-                        f"Connection to {self.host}:{self.port} timed out. Retrying in {self.retry_interval} seconds...")
-                    self.connection_status.emit(False)
-                except socket.error as e:
-                    print(
-                        f"Error connecting to {self.host}:{self.port}: {e}. Retrying in {self.retry_interval} seconds...")
-                    self.connection_status.emit(False)
-
-            else:
-                try:
-                    sock.send(b'PING')
-                    print(f"Connection is alive with {self.host}:{self.port}")
-                    self.connection_status.emit(True)
-                except socket.error as e:
-                    print(f"Connection lost: {e}. Attempting to reconnect...")
-                    connection_established = False
-                    sock.close()
-                    self.connection_status.emit(False)
-
-            time.sleep(self.retry_interval)
-
-    def stop(self):
+        self.lbl_checking = lbl_checking
+        self.ping_result.connect(self.update_ui)
         self.running = False
-        self.quit()
-        self.wait()
+
+    def check_ping(self, hostname):
+        self.running = True
+        def ping():
+            while self.running:
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                response = subprocess.call(
+                    ["ping", "-n", "1", hostname], 
+                    stdout=subprocess.PIPE, 
+                    stderr=subprocess.PIPE, 
+                    startupinfo=startupinfo
+                )
+                
+                if response == 0:
+                    color = 'green'
+                else:
+                    color = 'red'
+
+                self.ping_result.emit(color)
+                time.sleep(5)
+
+        threading.Thread(target=ping, daemon=True).start()
+
+    def update_ui(self, color):
+        self.lbl_checking.setStyleSheet(f"background-color: {color};")
