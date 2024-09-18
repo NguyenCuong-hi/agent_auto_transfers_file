@@ -4,7 +4,7 @@
     "port": 80,
     "username": "admin",
     "password": "admin",
-    "local_site": "E:/Test/",
+    "local_site": "E:/Test",
     "remote_site": "",
     "database": {
         "host_db": "",

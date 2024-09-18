@@ -6,9 +6,6 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from socket_client import send_file_socket
-
-
 class TransferThread(QThread):
     transfer_progress = pyqtSignal(str)
 
