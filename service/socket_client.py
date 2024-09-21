@@ -22,7 +22,7 @@ class ConnectionSocket:
             print(f"Retrying... ({attemp}/{retry})")
             time.sleep(delay)
         return None
-        
+
     
     def send_file(self, sock, file_path):
         try:

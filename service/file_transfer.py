@@ -43,7 +43,7 @@ class FileTransfer(Ui_MainWindow):
             file_path=PATH + '/setting.json')
 
         self.show_config(host=self.host, server=self.server, port=self.port)
-        self.check_ping(hostname = self.host)
+        self.check_ping(hostname = self.server)
 
         # 
         # self.transfer_file(dir=self.local_site)
@@ -55,7 +55,7 @@ class FileTransfer(Ui_MainWindow):
 
         root_path = os.path.expanduser(file_path)
         root_index = self.model.index(root_path)
-        self.tb_local.setRootIndex(root_index)
+        self.tb_local.setRootIndex(root_index)  
 
     def show_trv_path(self):
         self.model = QFileSystemModel()
@@ -90,7 +90,7 @@ class FileTransfer(Ui_MainWindow):
 
         self.host, self.server, self.port, username, password, local_site, remote_site, host_db, username_db, password_db, port_db, schema = reading_file_setting(
             file_setting=PATH + '/setting.json')
-        self.start_connection_checker(server=self.server, port=self.port)
+        self.check_ping(hostname = self.server)
 
     def transfer_file(self, dir):
         self.monitor_dir = DirectoryMonitorThread(directory=dir, host=self.host, port=self.port)

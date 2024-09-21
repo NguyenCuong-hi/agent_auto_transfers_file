@@ -31,7 +31,7 @@ class PingChecker(QObject):
                     color = 'red'
 
                 self.ping_result.emit(color)
-                time.sleep(5)
+                time.sleep(1)
 
         threading.Thread(target=ping, daemon=True).start()
 
